@@ -14,7 +14,7 @@ const setColorData = () => {
 
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-  requestAnimationFrame(animate);
+  requestAnimationFrame(render);
 };
 
 // get elements
@@ -73,21 +73,9 @@ gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
 
 gl.useProgram(program);
 
-const uniformLocations = {
-  matrix: gl.getUniformLocation(program, `matrix`),
-};
-
-const matrix = mat4.create();
-
-mat4.translate(matrix, matrix, [0.2, 0.5, 0]);
-
-mat4.scale(matrix, matrix, [0.25, 0.25, 0.25]);
-
-function animate() {
-  requestAnimationFrame(animate);
-  mat4.rotateZ(matrix, matrix, Math.PI / 2 / 70);
-  gl.uniformMatrix4fv(uniformLocations.matrix, false, matrix);
+function render() {
+  requestAnimationFrame(render);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
-animate();
+render();
