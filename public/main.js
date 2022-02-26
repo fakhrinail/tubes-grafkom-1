@@ -1,8 +1,27 @@
 import getColorDataFromInput from "./getColorData.js";
 import initShaders from "./initShaders.js";
 
-const setColorData = () => {
-  const colorData = getColorDataFromInput();
+let isPolygonBtnClicked = false;
+
+const polygon = {
+  coordinates: [],
+  color: []
+}
+
+const vertexData = polygon.coordinates.length !== 0 ? 
+  polygon.coordinates : [
+  100, 200, 0,
+  600, 200, 0,
+  100, 300, 0,
+  100, 300, 0,
+  600, 200, 0,
+  600, 300, 0
+];
+
+
+const setColorData = (vertexData) => {
+  console.log("test");
+  const colorData = getColorDataFromInput(vertexData);
 
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -17,12 +36,15 @@ const setColorData = () => {
   requestAnimationFrame(render);
 };
 
-let isPolygonBtnClicked = false;
 
 const polygonBtnClickHandler = () => {
   if (isPolygonBtnClicked) {
+    isPolygonBtnClicked = false;
+
+    console.log(polygon.coordinates);
     console.log("drawing polygon now...");
   } else {
+    isPolygonBtnClicked = true
     console.log("click on the canvas to determine points");
   }
 }
@@ -38,21 +60,28 @@ function getMousePosition(canvas, evt) {
 // get elements
 document
   .getElementById("btnChangeColor")
-  .addEventListener("click", setColorData);
+  .addEventListener("click", (event) => {
+    setColorData(vertexData) 
+  });
   
 const canvas = document.querySelector("canvas");
 const gl = canvas.getContext("webgl");
 
-document.getElementById("btnPolygon").addEventListener("click", polygonBtnClickHandler);
+document
+  .getElementById("btnPolygon")
+  .addEventListener("click", polygonBtnClickHandler);
 
 canvas.addEventListener("click", (event) => {
-  const mousePosition = getMousePosition(canvas, event);
-  console.log(mousePosition);
-
   if (isPolygonBtnClicked) {
-    console.log("Points determined, drawing polygon....");
+    console.log("Determine point");
+    const {x, y} = getMousePosition(canvas, event);
+    console.log(x, y);
+
+    polygon.coordinates.push(x);
+    polygon.coordinates.push(y);
+    polygon.coordinates.push(0);
   } else {
-    console.log("Click to determine points in polygon");
+    console.log("Click the button to begin operation");
   }
 })
 
@@ -60,28 +89,7 @@ if (!gl) {
   throw new Error("WebGL not supported");
 }
 
-// const vertexData = [
-//   0,
-//   1,
-//   0, // V1.position
-//   1,
-//   -1,
-//   0, // V2.position
-//   -1,
-//   -1,
-//   0, // V3.position
-// ];
-
-const vertexData = [
-  100, 200, 0,
-  600, 200, 0,
-  100, 300, 0,
-  100, 300, 0,
-  600, 200, 0,
-  600, 300, 0
-];
-
-const colorData = getColorDataFromInput();
+const colorData = getColorDataFromInput(vertexData);
 
 const positionBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);

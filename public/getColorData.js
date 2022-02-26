@@ -1,22 +1,22 @@
-const getColorDataFromInput = () => {
+const getColorDataFromInput = (vertexData) => {
   const redValue = document.getElementById("red").value || 0;
   const greenValue = document.getElementById("green").value || 0;
   const blueValue = document.getElementById("blue").value || 0;
   console.log(redValue, greenValue, blueValue);
 
-  const colorData = [
-    redValue,
-    greenValue,
-    blueValue,
-    redValue,
-    greenValue,
-    blueValue,
-    redValue,
-    greenValue,
-    blueValue,
-  ];
+  const colorData = [];
 
-  return colorData;
+  console.log(vertexData);
+
+  if (vertexData != undefined) {
+      vertexData.forEach(element => {
+        colorData.push(redValue, greenValue, blueValue);
+      });
+
+      return colorData;
+  }
+
+  return [0, 0, 0];
 };
 
 export default getColorDataFromInput;
