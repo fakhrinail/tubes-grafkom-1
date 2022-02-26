@@ -1,6 +1,11 @@
 import getColorDataFromInput from "./getColorData.js";
 import initShaders from "./initShaders.js";
 
+const canvas = document.querySelector("canvas");
+const gl = canvas.getContext("webgl");
+
+const program = initShaders(gl, "vertex-shader", "fragment-shader");
+
 let isPolygonBtnClicked = false;
 
 const polygon = {
@@ -8,7 +13,7 @@ const polygon = {
   color: []
 }
 
-const vertexData = polygon.coordinates.length !== 0 ? 
+let vertexData = polygon.coordinates.length !== 0 ? 
   polygon.coordinates : [
   100, 200, 0,
   600, 200, 0,
@@ -18,22 +23,22 @@ const vertexData = polygon.coordinates.length !== 0 ?
   600, 300, 0
 ];
 
-
 const setColorData = (vertexData) => {
-  console.log("test");
   const colorData = getColorDataFromInput(vertexData);
 
   gl.clear(gl.COLOR_BUFFER_BIT);
 
+  const colorLocation = gl.getAttribLocation(program, `color`);
   const colorBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
 
   gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
 
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  const count = polygon.coordinates.length !== 0 ? Math.floor(polygon.coordinates.length / 3) : vertexData.length / 3;
+  gl.drawArrays(gl.TRIANGLES, 0, count);
 
-  requestAnimationFrame(render);
+  render();
 };
 
 
@@ -43,6 +48,10 @@ const polygonBtnClickHandler = () => {
 
     console.log(polygon.coordinates);
     console.log("drawing polygon now...");
+
+    // render new polygon
+    vertexData = polygon.coordinates;
+    requestAnimationFrame(render);
   } else {
     isPolygonBtnClicked = true
     console.log("click on the canvas to determine points");
@@ -63,13 +72,12 @@ document
   .addEventListener("click", (event) => {
     setColorData(vertexData) 
   });
-  
-const canvas = document.querySelector("canvas");
-const gl = canvas.getContext("webgl");
 
 document
   .getElementById("btnPolygon")
-  .addEventListener("click", polygonBtnClickHandler);
+  .addEventListener("click", (event) => {
+    polygonBtnClickHandler(vertexData)
+  });
 
 canvas.addEventListener("click", (event) => {
   if (isPolygonBtnClicked) {
@@ -89,37 +97,42 @@ if (!gl) {
   throw new Error("WebGL not supported");
 }
 
-const colorData = getColorDataFromInput(vertexData);
-
-const positionBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
-
-const colorBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
-
-const program = initShaders(gl, "vertex-shader", "fragment-shader");
-gl.useProgram(program);
-
-const positionLocation = gl.getAttribLocation(program, `position`);
-gl.enableVertexAttribArray(positionLocation);
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
-
-const colorLocation = gl.getAttribLocation(program, `color`);
-gl.enableVertexAttribArray(colorLocation);
-gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
-
-let resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
-
-gl.useProgram(program);
-
 function render() {
-  requestAnimationFrame(render);
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
+  const colorData = getColorDataFromInput(vertexData);
+
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
+
+  gl.useProgram(program);
+
+  const positionLocation = gl.getAttribLocation(program, `position`);
+  gl.enableVertexAttribArray(positionLocation);
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+  const colorLocation = gl.getAttribLocation(program, `color`);
+  gl.enableVertexAttribArray(colorLocation);
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
+  let resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+  gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+  gl.useProgram(program);
+
+  gl.clearColor(0, 0, 0, 0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  const count = polygon.coordinates.length !== 0 ? Math.floor(polygon.coordinates.length / 3) : vertexData.length / 3;
+
+  console.log(polygon.coordinates);
+  console.log(count);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
 }
 
 render();
