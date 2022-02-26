@@ -36,14 +36,20 @@
       />
       <button onclick="" id="btnChangeColor" type="submit">Change Color</button>
     </form>
+    <button id="btnPolygon" type="button">Polygon</button>
     <script id="vertex-shader" type="x-shader/x-vertex">
-            precision mediump float;
-      attribute vec4 position;
+      precision mediump float;
+      attribute vec2 position;
+      uniform vec2 u_resolution;
+
       attribute vec3 color;
       varying vec3 vColor;
       void main() {
-          vColor = color;
-          gl_Position = position;
+        vec2 zeroToOne = position / u_resolution;
+        vec2 zeroToTwo = zeroToOne * 2.0;
+        vec2 clipSpace = zeroToTwo - 1.0;
+        vColor = color;
+        gl_Position = vec4(clipSpace, 0, 1);
       }
     </script>
     <script id="fragment-shader" type="x-shader/x-fragment">
