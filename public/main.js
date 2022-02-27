@@ -9,16 +9,21 @@ const gl = canvas.getContext("webgl");
 
 const program = initShaders(gl, "vertex-shader", "fragment-shader");
 
-let polygonHelperText = document.getElementById("polygonHelperText");
+let helperText = document.getElementById("helperText");
 
 let isPolygonBtnClicked = false;
+let isLineBtnClicked = false;
+
+const line = {
+  coordinates: []
+}
 
 const polygon = {
   coordinates: [],
   color: []
 }
 
-let tempPolygonCoordinates = [];
+let tempCoordinates = [];
 
 let vertexData = polygon.coordinates.length !== 0 ? 
   polygon.coordinates : [
@@ -50,17 +55,29 @@ const setColorData = (vertexData) => {
   render();
 };
 
+const lineBtnClickHandler = () => {
+  if (isLineBtnClicked) {
+    isLineBtnClicked = false;
+
+    line.coordinates.push(tempCoordinates);
+
+    helperText.innerHTML = "drawing line now...";
+  } else {
+    helperText.innerHTML = "click on the canvas to determine points";
+    isLineBtnClicked = true
+  }
+}
 
 const polygonBtnClickHandler = () => {
   if (isPolygonBtnClicked) {
     isPolygonBtnClicked = false;
 
-    polygonHelperText.innerHTML = "drawing polygon now...";
+    helperText.innerHTML = "drawing polygon now...";
     
-    polygon.coordinates.push(tempPolygonCoordinates);
-    tempPolygonCoordinates = [];
+    polygon.coordinates.push(tempCoordinates);
+    tempCoordinates = [];
   } else {
-    polygonHelperText.innerHTML = "click on the canvas to determine points";
+    helperText.innerHTML = "click on the canvas to determine points";
     isPolygonBtnClicked = true
   }
 }
@@ -86,13 +103,19 @@ document
     polygonBtnClickHandler(vertexData)
   });
 
+document
+  .getElementById("btnLine")
+  .addEventListener("click", (event) => {
+    lineBtnClickHandler(vertexData)
+  });
+
 canvas.addEventListener("click", (event) => {
-  if (isPolygonBtnClicked) {
+  if (isPolygonBtnClicked || isLineBtnClicked) {
     console.log("Determine point");
     const {x, y} = getMousePosition(canvas, event);
     console.log(x, y);
 
-    tempPolygonCoordinates.push(x, y, 0);
+    tempCoordinates.push(x, y, 0);
   } else {
     console.log("Click the button to begin operation");
   }
@@ -142,6 +165,33 @@ function render() {
     const count = Math.floor(vertexData.length / 3);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
+  })
+
+  line.coordinates.forEach(shape => {
+    vertexData = shape;
+    const colorData = getColorDataFromInput(vertexData);
+  
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+  
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
+  
+    gl.useProgram(program);
+  
+    gl.enableVertexAttribArray(positionLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+  
+    gl.enableVertexAttribArray(colorLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
+    const count = Math.floor(vertexData.length / 3);
+
+    gl.drawArrays(gl.LINES, 0, count);
   })
 
   requestAnimationFrame(render);
