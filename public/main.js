@@ -12,6 +12,7 @@ const program = initShaders(gl, "vertex-shader", "fragment-shader");
 let helperText = document.getElementById("helperText");
 
 let isPolygonBtnClicked = false;
+let isRectangleBtnClicked = false;
 let isLineBtnClicked = false;
 let isSelectBtnClicked = false;
 
@@ -20,6 +21,11 @@ const line = {
 }
 
 const polygon = {
+  coordinates: [],
+  color: []
+}
+
+const rectangle = {
   coordinates: [],
   color: []
 }
@@ -52,9 +58,6 @@ const getDistance = (x1, y1, x2, y2) => {
 }
 
 const setNewPoint = (coordinates, oldPoint, newPoint) => {
-  console.log("coor", coordinates);
-  console.log("old", oldPoint);
-  console.log("new", newPoint);
   coordinates.forEach(shape => {
     const oldXIndex = shape.indexOf(oldPoint[0]);
     const oldYIndex = shape.indexOf(oldPoint[1]);
@@ -109,6 +112,42 @@ const polygonBtnClickHandler = () => {
   } else {
     helperText.innerHTML = "click on the canvas to determine points";
     isPolygonBtnClicked = true
+  }
+}
+
+const rectangleBtnClickHandler = () => {
+  if (isRectangleBtnClicked) {
+    isRectangleBtnClicked = false;
+
+    helperText.innerHTML = "drawing rectangle now...";
+
+    if (tempCoordinates.length % 6 !== 0) {
+      helperText.innerHTML = "amount of start points and end points don't match";
+      tempCoordinates.splice(-3);
+    }
+
+    console.log(tempCoordinates);
+    const tempPoints = getPoints(tempCoordinates);
+    console.log(tempPoints);
+    const rectangleCoordinates = [];
+    tempPoints.forEach((point, index) => {
+      if (index % 2 == 0) {
+        rectangleCoordinates.push(
+          point[index], point[index+1], 0,
+          tempPoints[index+1][0], point[index+1], 0,
+          point[index], tempPoints[index+1][1],  0, // first triangle
+          point[index], tempPoints[index+1][1], 0,
+          tempPoints[index+1][0], point[index+1],  0,
+          tempPoints[index+1][0], tempPoints[index+1][1],  0, // second triangle
+        )
+      }
+    })
+
+    rectangle.coordinates.push(rectangleCoordinates);
+    tempCoordinates = [];
+  } else {
+    helperText.innerHTML = "click on the canvas to determine points";
+    isRectangleBtnClicked = true
   }
 }
 
@@ -229,10 +268,16 @@ document.
   selectBtnClickHandler()
 });
 
+document.
+  getElementById("btnRectangle").
+  addEventListener("click", (event) => {
+  rectangleBtnClickHandler()
+});
+
 canvas.addEventListener("click", (event) => {
   const {x, y} = getMousePosition(canvas, event);
 
-  if (isPolygonBtnClicked || isLineBtnClicked || isSelectBtnClicked) {
+  if (isPolygonBtnClicked || isLineBtnClicked || isSelectBtnClicked || isRectangleBtnClicked) {
     console.log("Determine points");
     tempCoordinates.push(x, y, 0);
   } else {
@@ -285,7 +330,33 @@ function render() {
     gl.drawArrays(gl.LINES, 0, count);
   })
 
+  rectangle.coordinates.forEach(shape => {
+    vertexData = shape;
+    const colorData = getColorDataFromInput(vertexData);
+  
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+  
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
+  
+    gl.useProgram(program);
+  
+    gl.enableVertexAttribArray(positionLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+  
+    gl.enableVertexAttribArray(colorLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, Math.floor(vertexData.length / 3));
+  })
+
   polygon.coordinates.forEach(shape => {
+    console.log(shape);
     vertexData = shape;
     const colorData = getColorDataFromInput(vertexData);
   
