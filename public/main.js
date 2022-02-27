@@ -14,7 +14,13 @@ let helperText = document.getElementById("helperText");
 let isPolygonBtnClicked = false;
 let isRectangleBtnClicked = false;
 let isLineBtnClicked = false;
+let isSquareBtnClicked = false;
 let isSelectBtnClicked = false;
+let isResizeBtnClicked = false;
+let isLengthFilled = false;
+let isOptionValid = false;
+let squareOption = -1;
+let squareLength;
 
 const line = {
   coordinates: []
@@ -25,12 +31,19 @@ const polygon = {
   color: []
 }
 
+const square ={
+  coordinates: [],
+  center: [],
+  color: []
+}
+
 const rectangle = {
   coordinates: [],
   color: []
 }
 
 let tempCoordinates = [];
+let tempCenter = [];
 
 let vertexData = polygon.coordinates.length !== 0 ? 
   polygon.coordinates : [
@@ -115,6 +128,23 @@ const polygonBtnClickHandler = () => {
   }
 }
 
+const squareBtnClickHandler = () =>{
+  if (isSquareBtnClicked){
+    isSquareBtnClicked = false;
+
+    helperText.innerHTML = "drawing square now...";
+
+    square.coordinates.push(tempCoordinates);
+    square.center.push(tempCenter);
+    addOption(square.center.length-1);
+    tempCoordinates = [];
+    tempCenter = [];
+  } else{
+    helperText.innerHTML = "click on the canvas to determine center point";
+    isSquareBtnClicked = true
+  }
+}
+
 const rectangleBtnClickHandler = () => {
   if (isRectangleBtnClicked) {
     isRectangleBtnClicked = false;
@@ -148,6 +178,23 @@ const rectangleBtnClickHandler = () => {
   } else {
     helperText.innerHTML = "click on the canvas to determine points";
     isRectangleBtnClicked = true
+  }
+}
+
+const resizeBtnClickHandler = () =>{
+  if(isLengthFilled && isOptionValid){
+    var index = document.getElementById("squareOption").value;
+    var newSize = (document.getElementById("length").value)/2;
+    isResizeBtnClicked = false;
+    helperText.innerHTML = "resizing square now...";
+    let tempCoord=[];
+    var x = square.center[index][0];
+    var y = square.center[index][1];
+    tempCoord.push(x-newSize,y+newSize,0);
+    tempCoord.push(x-newSize,y-newSize,0);
+    tempCoord.push(x+newSize,y-newSize,0);
+    tempCoord.push(x+newSize,y+newSize,0);
+    square.coordinates[index] = tempCoord;
   }
 }
 
@@ -190,6 +237,12 @@ const selectBtnClickHandler = () => {
       currentPolygonPoints.push(...currentPoints);
     })
 
+    let currentSquarePoints = [];
+    square.coordinates.forEach(shape => {
+      const currentPoints = getPoints(shape);
+      currentSquarePoints.push(...currentPoints);
+    })
+
     // swap matching current point with target point
     let selectLinePointIndex = 0;
     for (let index = 0; index < currentLinePoints.length; index++) {
@@ -223,6 +276,17 @@ const selectBtnClickHandler = () => {
       if (selectedPoints.length <= selectPolygonPointIndex && targetPoints.length <= selectPolygonPointIndex) {
         console.log("finish");
         break;
+      }
+    }
+
+    let selectSquarePointIndex = 0;
+    for (let index = 0; index < currentSquarePoints.length; index++) {
+      const [x1, y1] = currentSquarePoints[index];
+      const [x2, y2] = selectedPoints[selectSquarePointIndex];
+
+      if (getDistance(x1, y1, x2, y2) <= 0.05) {
+        currentSquarePoints[index] = targetPoints[selectSquarePointIndex];
+        selectSquarePointIndex++;
       }
     }
 
@@ -274,6 +338,40 @@ document.
   rectangleBtnClickHandler()
 });
 
+document
+  .getElementById("squareOption")
+  .addEventListener("click", (event) => {
+    squareOption = document.getElementById("squareOption").value; 
+    if (document.getElementById("squareOption").value == -1){
+      isOptionValid = false;
+      helperText.innerHTML = "No square selected";
+    }else{
+      isOptionValid = true;
+    }
+  });
+
+document
+  .getElementById("btnSquare")
+  .addEventListener("click", (event) => {
+    squareBtnClickHandler()
+  });
+
+document.
+  getElementById("resizeSquare").
+  addEventListener("click", (event) => {
+    helperText.innerHTML="click resize";
+  resizeBtnClickHandler()
+});
+
+document.
+  getElementById("length").
+  addEventListener("change", (event) => {
+  if(document.getElementById("length").value > 0 && document.getElementById("length").value!= null){
+    squareLength = document.getElementById("length").value/2;
+    isLengthFilled = true;
+  }
+});
+
 canvas.addEventListener("click", (event) => {
   const {x, y} = getMousePosition(canvas, event);
 
@@ -281,9 +379,32 @@ canvas.addEventListener("click", (event) => {
     console.log("Determine points");
     tempCoordinates.push(x, y, 0);
   } else {
-    console.log("Click the button to begin operation");
+    if (isSquareBtnClicked){
+      console.log("Determine points");
+      
+      if(isLengthFilled){
+        tempCenter.push(x, y, 0);
+        tempCoordinates.push(x-squareLength,y+squareLength,0);
+        tempCoordinates.push(x-squareLength,y-squareLength,0);
+        tempCoordinates.push(x+squareLength,y-squareLength,0);
+        tempCoordinates.push(x+squareLength,y+squareLength,0);
+      }else{
+        console.log("Length value is not filled")
+      }
+    }
+    else{
+      console.log("Click the button to begin operation");
+    }
   }
 })
+
+function addOption(idx) {
+  var sq = document.getElementById("squareOption");
+  var option = document.createElement("OPTION");
+  option.innerHTML = "Square "+(idx+1);
+  option.value = idx;
+  sq.options.add(option);
+}
 
 if (!gl) {
   throw new Error("WebGL not supported");
@@ -381,6 +502,39 @@ function render() {
     const count = Math.floor(vertexData.length / 3);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
+  })
+
+  square.coordinates.forEach(shape => {
+    vertexData = shape;
+    const colorData = getColorDataFromInput(vertexData);
+  
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+  
+    var indices = [3, 2, 1, 3, 1, 0];
+
+    var Index_Buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, Index_Buffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices),gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+    const colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
+  
+    gl.useProgram(program);
+  
+    gl.enableVertexAttribArray(positionLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,Index_Buffer);
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+  
+    gl.enableVertexAttribArray(colorLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
+    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
   })
 
   requestAnimationFrame(render);

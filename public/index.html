@@ -39,6 +39,22 @@
     <button id="btnPolygon" type="button">Polygon</button>
     <button id="btnRectangle" type="button">Rectangle</button>
     <button id="btnLine" type="button">Line</button>
+    <button id="btnSquare" type="button">Square</button>
+    <label for="squareOption">Change Square Length</label>
+    <select id = "squareOption">
+      <option value=-1>Select Square</option>
+    </select>
+    
+    <label for="length">Square Length</label>
+      <input
+        min="0"
+        step="1"
+        type="number"
+        id="length"
+        name="length"
+      />
+      
+    <button id="resizeSquare" type="button">Resize Square</button>
     <button id="btnSelect" type="button">Select Point(s)</button>
     <script id="vertex-shader" type="x-shader/x-vertex">
       precision mediump float;
