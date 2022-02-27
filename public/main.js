@@ -38,7 +38,7 @@ let vertexData = polygon.coordinates.length !== 0 ?
 
 const getPoints = (coordinates) => {
   const points = coordinates.map( function(element,index){ 
-    return index%3===0 ? tempCoordinates.slice(index,index+3) : null; 
+    return index%3===0 ? coordinates.slice(index,index+3) : null; 
   }).filter(function(e){ return e; });
 
   return points;
@@ -49,6 +49,20 @@ const getDistance = (x1, y1, x2, y2) => {
   let x = y2 - y1;
     
   return Math.sqrt(x * x + y * y);
+}
+
+const setNewPoint = (coordinates, oldPoint, newPoint) => {
+  console.log("coor", coordinates);
+  console.log("old", oldPoint);
+  console.log("new", newPoint);
+  coordinates.forEach(shape => {
+    const oldXIndex = shape.indexOf(oldPoint[0]);
+    const oldYIndex = shape.indexOf(oldPoint[1]);
+    if (oldXIndex !== -1 && oldYIndex !== -1) {
+      shape[oldXIndex] = newPoint[0];
+      shape[oldYIndex] = newPoint[1];
+    }
+  })
 }
 
 const setColorData = (vertexData) => {
@@ -125,9 +139,17 @@ const selectBtnClickHandler = () => {
     })
 
     // divide available coordinates to points
-    
-    const currentLinePoints = getPoints(line.coordinates);
-    const currentPolygonPoints = getPoints(polygon.coordinates);
+    let currentLinePoints = [];
+    line.coordinates.forEach(shape => {
+      const currentPoints = getPoints(shape);
+      currentLinePoints.push(...currentPoints);
+    })
+
+    let currentPolygonPoints = [];
+    polygon.coordinates.forEach(shape => {
+      const currentPoints = getPoints(shape);
+      currentPolygonPoints.push(...currentPoints);
+    })
 
     // swap matching current point with target point
     let selectLinePointIndex = 0;
@@ -136,8 +158,14 @@ const selectBtnClickHandler = () => {
       const [x2, y2] = selectedPoints[selectLinePointIndex];
 
       if (getDistance(x1, y1, x2, y2) <= 0.05) {
-        currentLinePoints[index] = targetPoints[selectLinePointIndex];
+        setNewPoint(line.coordinates, currentLinePoints[index], targetPoints[selectLinePointIndex]);
         selectLinePointIndex++;
+      }
+
+      // all selected and target points already resolved
+      if (selectedPoints.length <= selectLinePointIndex && targetPoints.length <= selectLinePointIndex) {
+        console.log("finish");
+        break;
       }
     }
 
@@ -146,13 +174,20 @@ const selectBtnClickHandler = () => {
       const [x1, y1] = currentPolygonPoints[index];
       const [x2, y2] = selectedPoints[selectPolygonPointIndex];
 
-      if (getDistance(x1, y1, x2, y2) <= 0.05) {
-        currentPolygonPoints[index] = targetPoints[selectPolygonPointIndex];
+      const distance = getDistance(x1, y1, x2, y2);
+      if (distance <= 5) {
+        setNewPoint(polygon.coordinates, currentPolygonPoints[index], targetPoints[selectPolygonPointIndex]);
         selectPolygonPointIndex++;
+      }
+
+      // all selected and target points already resolved
+      if (selectedPoints.length <= selectPolygonPointIndex && targetPoints.length <= selectPolygonPointIndex) {
+        console.log("finish");
+        break;
       }
     }
 
-
+    tempCoordinates = [];
   } else {
     isSelectBtnClicked = true;
 
