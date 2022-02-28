@@ -156,9 +156,7 @@ const rectangleBtnClickHandler = () => {
       tempCoordinates.splice(-3);
     }
 
-    console.log(tempCoordinates);
     const tempPoints = getPoints(tempCoordinates);
-    console.log(tempPoints);
     const rectangleCoordinates = [];
     tempPoints.forEach((point, index) => {
       if (index % 2 == 0) {
@@ -243,6 +241,12 @@ const selectBtnClickHandler = () => {
       currentSquarePoints.push(...currentPoints);
     })
 
+    let currentRectanglePoints = [];
+    rectangle.coordinates.forEach(shape => {
+      const currentPoints = getPoints(shape);
+      currentRectanglePoints.push(...currentPoints);
+    })
+
     // swap matching current point with target point
     let selectLinePointIndex = 0;
     for (let index = 0; index < currentLinePoints.length; index++) {
@@ -284,9 +288,34 @@ const selectBtnClickHandler = () => {
       const [x1, y1] = currentSquarePoints[index];
       const [x2, y2] = selectedPoints[selectSquarePointIndex];
 
-      if (getDistance(x1, y1, x2, y2) <= 0.05) {
-        currentSquarePoints[index] = targetPoints[selectSquarePointIndex];
+      const distance = getDistance(x1, y1, x2, y2);
+      if (distance <= 5) {
+        setNewPoint(square.coordinates, currentSquarePoints[index], targetPoints[selectSquarePointIndex]);
         selectSquarePointIndex++;
+      }
+
+      // all selected and target points already resolved
+      if (selectedPoints.length <= selectSquarePointIndex && targetPoints.length <= selectSquarePointIndex) {
+        console.log("finish");
+        break;
+      }
+    }
+
+    let selectRectanglePointIndex = 0;
+    for (let index = 0; index < currentRectanglePoints.length; index++) {
+      const [x1, y1] = currentRectanglePoints[index];
+      const [x2, y2] = selectedPoints[selectRectanglePointIndex];
+
+      const distance = getDistance(x1, y1, x2, y2);
+      if (distance <= 5) {
+        setNewPoint(rectangle.coordinates, currentRectanglePoints[index], targetPoints[selectRectanglePointIndex]);
+        selectRectanglePointIndex++;
+      }
+
+      // all selected and target points already resolved
+      if (selectedPoints.length <= selectRectanglePointIndex && targetPoints.length <= selectRectanglePointIndex) {
+        console.log("finish");
+        break;
       }
     }
 
