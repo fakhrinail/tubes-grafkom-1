@@ -573,7 +573,7 @@ function render() {
     const count = Math.floor(vertexData.length / 3);
 
     let colorUniformLocation = gl.getUniformLocation(program, "u_color");
-    gl.uniform4f(colorUniformLocation, 1, 1, 1, 1);
+    gl.uniform4f(colorUniformLocation, 0, 0, 0, 1);
 
     gl.drawArrays(gl.LINES, 0, count);
   })
