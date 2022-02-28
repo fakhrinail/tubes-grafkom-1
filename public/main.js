@@ -475,7 +475,7 @@ function render() {
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
 
-    const count = Math.floor(vertexData.length / 2);
+    const count = Math.floor(vertexData.length / 3);
 
     gl.drawArrays(gl.LINES, 0, count);
   })

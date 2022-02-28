@@ -12,50 +12,73 @@
     <script type="module" src="main.js" defer></script>
   </head>
   <body>
-    <h1>WebGL!!</h1>
-    <form id="formChangeColor" onsubmit="return false">
-      <label for="red">Red Value</label>
-      <input max="1.0" min="0.0" step="0.1" type="number" id="red" name="red" />
-      <label for="green">Green Value</label>
-      <input
-        max="1.0"
-        min="0.0"
-        step="0.1"
-        type="number"
-        id="green"
-        name="green"
+    <section>
+
+      <div class="menu">
+        
+        <h1>WebGL!!</h1>
+        <form id="formChangeColor" onsubmit="return false">
+          <label for="red">Red Value</label>
+          <input max="1.0" min="0.0" step="0.1" type="number" id="red" name="red" />
+          <label for="green">Green Value</label>
+          <input
+      max="1.0"
+      min="0.0"
+      step="0.1"
+      type="number"
+      id="green"
+      name="green"
       />
       <label for="blue">Blue Value</label>
       <input
-        max="1.0"
-        min="0.0"
-        step="0.1"
-        type="number"
-        id="blue"
-        name="blue"
+      max="1.0"
+      min="0.0"
+      step="0.1"
+      type="number"
+      id="blue"
+      name="blue"
       />
       <button onclick="" id="btnChangeColor" type="submit">Change Color</button>
     </form>
-    <button id="btnPolygon" type="button">Polygon</button>
-    <button id="btnRectangle" type="button">Rectangle</button>
-    <button id="btnLine" type="button">Line</button>
-    <button id="btnSquare" type="button">Square</button>
-    <label for="squareOption">Change Square Length</label>
-    <select id = "squareOption">
-      <option value=-1>Select Square</option>
-    </select>
-    
-    <label for="length">Square Length</label>
+    <div class="button">
+      <button id="btnPolygon" type="button">Polygon</button>
+      <button id="btnRectangle" type="button">Rectangle</button>
+      <button id="btnLine" type="button">Line</button>
+      <button id="btnSquare" type="button">Square</button>
+    </div>
+    <div class="squareMenu">
+      
+      <label for="squareOption">Change Square Length</label>
+      <select id = "squareOption">
+        <option value=-1>Select Square</option>
+      </select>
+      
+      <label for="length">Square Length</label>
       <input
-        min="0"
-        step="1"
-        type="number"
-        id="length"
-        name="length"
+      min="0"
+      step="1"
+      type="number"
+      id="length"
+      name="length"
       />
       
-    <button id="resizeSquare" type="button">Resize Square</button>
-    <button id="btnSelect" type="button">Select Point(s)</button>
+      <button id="resizeSquare" type="button">Resize Square</button>
+    </div>
+    <div class="lineMenu">
+
+      <label for="lineOption">Change Line Length</label>
+      <select id = "lineOption">
+        <option value=-1>Select Line</option>
+      </select>
+
+      <label for="lineLength">Line Length</label>
+      <input min="0" step="1" type="number" id="lineLength" name="length" />
+      <button id="resizeLine" type="button">Resize Line</button>
+      
+    </div>
+      <button id="btnSelect" type="button">Select Point(s)</button>
+  </div>
+</section>
     <script id="vertex-shader" type="x-shader/x-vertex">
       precision mediump float;
       attribute vec2 position;
