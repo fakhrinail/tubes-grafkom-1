@@ -17,10 +17,15 @@ let isLineBtnClicked = false;
 let isSquareBtnClicked = false;
 let isSelectBtnClicked = false;
 let isResizeBtnClicked = false;
+let isResizeLineClicked = false;
 let isLengthFilled = false;
+let isLineLengthFilled = false;
 let isOptionValid = false;
+let isLineOptionValid = false;
 let squareOption = -1;
+let lineOption = -1;
 let squareLength;
+let lineLength;
 
 const line = {
   coordinates: []
@@ -106,7 +111,7 @@ const lineBtnClickHandler = () => {
     isLineBtnClicked = false;
 
     line.coordinates.push(tempCoordinates);
-
+    addLineOption(line.coordinates.length-1);
     helperText.innerHTML = "drawing line now...";
   } else {
     helperText.innerHTML = "click on the canvas to determine points";
@@ -193,6 +198,43 @@ const resizeBtnClickHandler = () =>{
     tempCoord.push(x+newSize,y-newSize,0);
     tempCoord.push(x+newSize,y+newSize,0);
     square.coordinates[index] = tempCoord;
+  }
+}
+
+const resizeLineClickHandler = () => {
+  if (isLineLengthFilled && isLineOptionValid) {
+    console.log("test");
+    var index = document.getElementById("lineOption").value;
+    var newSize = document.getElementById("length").value;
+    isResizeBtnClicked = false;
+    helperText.innerHTML = "resizing line now...";
+
+    newSize -= 100.0;
+    newSize /= 100.0;
+    const [
+      oldX1, oldY1, oldZ1,
+      oldX2, oldY2, oldZ2,
+    ] = line.coordinates[index];
+    const V = [oldX1-oldX2, oldY1-oldY2];
+
+    console.log(V);
+
+    const factor = newSize;
+    const newPosition = [oldX1 + (V[0] * factor), oldY1+ (V[1] * factor)];
+    const newX = oldX1 + (V[0] * factor);
+    const newY = oldY1 + (V[0] * factor);
+    console.log(newPosition);
+    
+    // const newX = oldX2 + newSize * (oldX2 - oldX1);
+    // const newY = oldY2 + newSize * (oldY2 - oldY1);
+
+    console.log("lama", line.coordinates[index]);
+    
+    console.log(oldX2, oldY2);
+    console.log(newPosition[0], newPosition[1]);
+    
+    line.coordinates[index] = [oldX1, oldY1, oldZ1, newX, newY, oldZ2];
+    console.log("baru", line.coordinates[index]);
   }
 }
 
@@ -377,6 +419,18 @@ document
     }else{
       isOptionValid = true;
     }
+});
+
+document
+  .getElementById("lineOption")
+  .addEventListener("click", (event) => {
+    lineOption = document.getElementById("lineOption").value; 
+    if (document.getElementById("lineOption").value == -1){
+      isLineOptionValid = false;
+      helperText.innerHTML = "No square selected";
+    }else{
+      isLineOptionValid = true;
+    }
   });
 
 document
@@ -393,11 +447,27 @@ document.
 });
 
 document.
+  getElementById("resizeLine").
+  addEventListener("click", (event) => {
+    helperText.innerHTML="click resize";
+  resizeLineClickHandler()
+});
+
+document.
   getElementById("length").
   addEventListener("change", (event) => {
   if(document.getElementById("length").value > 0 && document.getElementById("length").value!= null){
     squareLength = document.getElementById("length").value/2;
     isLengthFilled = true;
+  }
+});
+
+document.
+  getElementById("lineLength").
+  addEventListener("change", (event) => {
+  if(document.getElementById("lineLength").value > 0 && document.getElementById("lineLength").value!= null){
+    lineLength = document.getElementById("lineLength").value;
+    isLineLengthFilled = true;
   }
 });
 
@@ -433,6 +503,14 @@ function addOption(idx) {
   option.innerHTML = "Square "+(idx+1);
   option.value = idx;
   sq.options.add(option);
+}
+
+function addLineOption(idx) {
+  var ln = document.getElementById("lineOption");
+  var option = document.createElement("OPTION");
+  option.innerHTML = "Line "+(idx+1);
+  option.value = idx;
+  ln.options.add(option);
 }
 
 if (!gl) {
