@@ -86,32 +86,44 @@ const setNewPoint = (coordinates, oldPoint, newPoint) => {
   })
 }
 
-const setColorData = (vertexData) => {
+const setColorData = (vertexData, polygonIdx) => {
   const colorData = getColorDataFromInput(vertexData);
 
-  polygon.color = colorData;
+  console.log(polygonIdx);
+  console.log(colorData);
 
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  polygon.color[polygonIdx] = colorData;
 
-  const colorLocation = gl.getAttribLocation(program, `color`);
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
+  console.log(polygon.color);
 
-  gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+  // gl.clear(gl.COLOR_BUFFER_BIT);
 
-  const count = polygon.coordinates.length !== 0 ? Math.floor(polygon.coordinates.length / 3) : vertexData.length / 3;
-  gl.drawArrays(gl.TRIANGLES, 0, count);
+  // const colorLocation = gl.getAttribLocation(program, `color`);
+  // const colorBuffer = gl.createBuffer();
+  // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorData), gl.STATIC_DRAW);
 
-  render();
+  // gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
+  // const count = polygon.coordinates.length !== 0 ? Math.floor(polygon.coordinates.length / 3) : vertexData.length / 3;
+  // gl.drawArrays(gl.TRIANGLES, 0, count);
+
+  // render();
 };
 
 const lineBtnClickHandler = () => {
   if (isLineBtnClicked) {
     isLineBtnClicked = false;
 
-    line.coordinates.push(tempCoordinates);
-    addLineOption(line.coordinates.length-1);
+    while (tempCoordinates.length > 0) {
+      const tempLine = tempCoordinates.splice(0,6);
+      line.coordinates.push(tempLine);
+      addLineOption(line.coordinates.length-1);
+    }
+
+    console.log(line.coordinates);
+
+    tempCoordinates = [];
     helperText.innerHTML = "drawing line now...";
   } else {
     helperText.innerHTML = "click on the canvas to determine points";
@@ -126,6 +138,11 @@ const polygonBtnClickHandler = () => {
     helperText.innerHTML = "drawing polygon now...";
     
     polygon.coordinates.push(tempCoordinates);
+    polygon.color.push([0, 0, 0, 1]);
+
+    console.log(polygon.color);
+    addPolygonOption(polygon.coordinates.length-1);
+
     tempCoordinates = [];
   } else {
     helperText.innerHTML = "click on the canvas to determine points";
@@ -205,12 +222,16 @@ const resizeLineClickHandler = () => {
   if (isLineLengthFilled && isLineOptionValid) {
     console.log("test");
     var index = document.getElementById("lineOption").value;
+
+    console.log(index);
+
     var newSize = document.getElementById("lineLength").value;
     isResizeBtnClicked = false;
     helperText.innerHTML = "resizing line now...";
 
     newSize -= 100.0;
     newSize /= 100.0;
+    
     const [
       oldX1, oldY1, oldZ1,
       oldX2, oldY2, oldZ2,
@@ -368,7 +389,8 @@ function getMousePosition(canvas, evt) {
 document
   .getElementById("btnChangeColor")
   .addEventListener("click", (event) => {
-    setColorData(vertexData) 
+    const polygonSelected = document.getElementById("polygonOption").value;
+    setColorData(vertexData, polygonSelected) 
   });
 
 document
@@ -462,6 +484,7 @@ canvas.addEventListener("click", (event) => {
 
   if (isPolygonBtnClicked || isLineBtnClicked || isSelectBtnClicked || isRectangleBtnClicked) {
     console.log("Determine points");
+    console.log(x, y);
     tempCoordinates.push(x, y, 0);
   } else {
     if (isSquareBtnClicked){
@@ -497,6 +520,14 @@ function addLineOption(idx) {
   option.innerHTML = "Line "+(idx+1);
   option.value = idx;
   ln.options.add(option);
+}
+
+function addPolygonOption(idx) {
+  var plygn = document.getElementById("polygonOption");
+  var option = document.createElement("OPTION");
+  option.innerHTML = "Polygon "+(idx+1);
+  option.value = idx;
+  plygn.options.add(option);
 }
 
 if (!gl) {
@@ -541,6 +572,9 @@ function render() {
 
     const count = Math.floor(vertexData.length / 3);
 
+    let colorUniformLocation = gl.getUniformLocation(program, "u_color");
+    gl.uniform4f(colorUniformLocation, 1, 1, 1, 1);
+
     gl.drawArrays(gl.LINES, 0, count);
   })
 
@@ -566,11 +600,14 @@ function render() {
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
 
+    let colorUniformLocation = gl.getUniformLocation(program, "u_color");
+    gl.uniform4f(colorUniformLocation, 0, 0, 0, 1);
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, Math.floor(vertexData.length / 3));
   })
 
-  polygon.coordinates.forEach(shape => {
-    console.log(shape);
+  polygon.coordinates.forEach((shape, index) => {
+    let colorUniformLocation = gl.getUniformLocation(program, "u_color");
     vertexData = shape;
     const colorData = getColorDataFromInput(vertexData);
   
@@ -593,6 +630,10 @@ function render() {
     gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
 
     const count = Math.floor(vertexData.length / 3);
+
+    const [redValue, greenValue, blueValue] = polygon.color[index];
+
+    gl.uniform4f(colorUniformLocation, redValue, greenValue, blueValue, 1);
 
     gl.drawArrays(gl.TRIANGLE_FAN, 0, count);
   })
@@ -626,6 +667,9 @@ function render() {
     gl.enableVertexAttribArray(colorLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
+
+    let colorUniformLocation = gl.getUniformLocation(program, "u_color");
+    gl.uniform4f(colorUniformLocation, 0, 0, 0, 1);
 
     gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
   })

@@ -51,6 +51,9 @@
           </p>
         </div>
         <form id="formChangeColor" onsubmit="return false">
+          <select required id="polygonOption">
+            <option value="-1">Select Polygon</option>
+          </select>
           <label for="red">Red Value</label>
           <input
             max="1.0"
@@ -59,6 +62,7 @@
             type="number"
             id="red"
             name="red"
+            required
           />
           <label for="green">Green Value</label>
           <input
@@ -68,6 +72,7 @@
             type="number"
             id="green"
             name="green"
+            required
           />
           <label for="blue">Blue Value</label>
           <input
@@ -77,6 +82,7 @@
             type="number"
             id="blue"
             name="blue"
+            required
           />
           <button onclick="" id="btnChangeColor" type="submit">
             Change Color
@@ -131,8 +137,9 @@
     <script id="fragment-shader" type="x-shader/x-fragment">
             precision mediump float;
       varying vec3 vColor;
+      uniform vec4 u_color;
       void main() {
-          gl_FragColor = vec4(vColor, 1);
+          gl_FragColor = u_color;
       }
     </script>
     <canvas width="720" height="720"></canvas>

@@ -3,17 +3,7 @@ const getColorDataFromInput = (vertexData) => {
   const greenValue = document.getElementById("green").value || 0;
   const blueValue = document.getElementById("blue").value || 0;
 
-  const colorData = [];
-
-  if (vertexData != undefined) {
-      vertexData.forEach(element => {
-        colorData.push(redValue, greenValue, blueValue);
-      });
-
-      return colorData;
-  }
-
-  return [0, 0, 0];
+  return [redValue, greenValue, blueValue, 1];
 };
 
 export default getColorDataFromInput;
