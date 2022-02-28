@@ -205,7 +205,7 @@ const resizeLineClickHandler = () => {
   if (isLineLengthFilled && isLineOptionValid) {
     console.log("test");
     var index = document.getElementById("lineOption").value;
-    var newSize = document.getElementById("length").value;
+    var newSize = document.getElementById("lineLength").value;
     isResizeBtnClicked = false;
     helperText.innerHTML = "resizing line now...";
 
@@ -215,23 +215,9 @@ const resizeLineClickHandler = () => {
       oldX1, oldY1, oldZ1,
       oldX2, oldY2, oldZ2,
     ] = line.coordinates[index];
-    const V = [oldX1-oldX2, oldY1-oldY2];
-
-    console.log(V);
-
-    const factor = newSize;
-    const newPosition = [oldX1 + (V[0] * factor), oldY1+ (V[1] * factor)];
-    const newX = oldX1 + (V[0] * factor);
-    const newY = oldY1 + (V[0] * factor);
-    console.log(newPosition);
     
-    // const newX = oldX2 + newSize * (oldX2 - oldX1);
-    // const newY = oldY2 + newSize * (oldY2 - oldY1);
-
-    console.log("lama", line.coordinates[index]);
-    
-    console.log(oldX2, oldY2);
-    console.log(newPosition[0], newPosition[1]);
+    const newX = oldX2 + newSize * (oldX2 - oldX1);
+    const newY = oldY2 + newSize * (oldY2 - oldY1);
     
     line.coordinates[index] = [oldX1, oldY1, oldZ1, newX, newY, oldZ2];
     console.log("baru", line.coordinates[index]);
